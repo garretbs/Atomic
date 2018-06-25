@@ -40,6 +40,11 @@ class ConnectFour_Grid:
 					break
 				i -= 1
 	
+	def absolute_place(self, column, row):
+		self.grid[row][column] = self.player_symbol
+		self.slots_taken += 1
+		return True
+	
 	def check_for_winner(self):
 		#check rows for horizontal win
 		for row in range(0, 6):
@@ -51,34 +56,47 @@ class ConnectFour_Grid:
 			for column in range(0, 7):
 				if self.vertical_equal(row, column) and self.grid[row][column] != ' ':
 					return True
-		#painstakingly check for diagonal win
+		#go lower right for diagonal win
 		for row in range(0, 3):
-			if self.diagonal_downright_equal(row, 0) and self.grid[row][0] != ' ':
-				return True
+			for column in range(0, 4):
+				if self.diagonal_downright_equal(row, column) and self.grid[row][column] != ' ':
+					return True
+		#go upper right for diagonal win
+		for row in range(3, 6):
+			for column in range(0, 4):
+				if self.diagonal_upright_equal(row, column) and self.grid[row][column] != ' ':
+					return True
 		return False
 	
 	def horizontal_equal(self, row, column):
-		return self.grid[row][column] == self.grid[row][column+1] and\
-		self.grid[row][column] == self.grid[row][column+2] and\
-		self.grid[row][column] == self.grid[row][column+3]
+		return self.grid[row][column] == self.grid[row][column+1] and 		self.grid[row][column] == self.grid[row][column+2] and 		self.grid[row][column] == self.grid[row][column+3]
 	
 	def vertical_equal(self, row, column):
-		return self.grid[row][column] == self.grid[row+1][column] and\
-		self.grid[row][column] == self.grid[row+2][column] and\
-		self.grid[row][column] == self.grid[row+3][column]
+		return self.grid[row][column] == self.grid[row+1][column] and 		self.grid[row][column] == self.grid[row+2][column] and 		self.grid[row][column] == self.grid[row+3][column]
 	
 	def diagonal_downright_equal(self, row, column):
-		return self.grid[row][column] == self.grid[row+1][column+1] and\
-		self.grid[row][column] == self.grid[row+2][column+2] and\
-		self.grid[row][column] == self.grid[row+3][column+3]
+		return self.grid[row][column] == self.grid[row+1][column+1] and 		self.grid[row][column] == self.grid[row+2][column+2] and 		self.grid[row][column] == self.grid[row+3][column+3]
 	
 	def diagonal_upright_equal(self, row, column):
-		return self.grid[row][column] == self.grid[row-1][column+1] and\
-		self.grid[row][column] == self.grid[row-2][column+2] and\
-		self.grid[row][column] == self.grid[row-3][column+3]
+		return self.grid[row][column] == self.grid[row-1][column+1] and self.grid[row][column] == self.grid[row-2][column+2] and self.grid[row][column] == self.grid[row-3][column+3]
 
 def main():
 	grid = ConnectFour_Grid()
+	place_anywhere = False
+	
+	while place_anywhere:
+		print()
+		grid.print()
+		col = int(input("Choose your column: "))
+		row = int(input("Choose your row: "))
+		grid.absolute_place(col, row)
+		print()
+		grid.print()
+		
+		if grid.check_for_winner():
+			print("You won! Goodbye")
+			return
+		
 	
 	while True:
 		grid.print()
