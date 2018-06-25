@@ -120,6 +120,7 @@ def main():
 	
 	#Line stuff
 	ls = 3
+	scolor = (255, 255, 255)
 	
 	l1x = size[0]/3
 	l1y = 16
@@ -164,10 +165,26 @@ def main():
 					pygame.draw.line(screen, fcolor, line4[0], line4[1], ls)
 					pygame.display.update()
 					
-					if grid.check_if_solved():
+					result = grid.check_if_solved()
+					if result:
 						pygame.time.delay(250)
-						#pygame.draw.line(screen, fcolor, line1[0], line1[1], ls)
+						if result[0] is None: #horizontal
+							y = (size[1]/3)*result[1]+size[1]/6
+							pygame.draw.line(screen, scolor, (l3x, y), (l3w, y), ls)
+						elif result[1] is None: #vertical
+							x = (size[0]/3)*result[0]+size[0]/6
+							pygame.draw.line(screen, scolor, (x, l1y), (x, l1h), ls)
+						else: #diagonal
+							x1,y1 = result[0][0], result[0][1]
+							x2,y2 = result[1][0],result[1][1]
+							x1 = (size[0]/3)*x1+size[0]/6
+							y1 = (size[1]/3)*y1+size[1]/6
+							x2 = (size[0]/3)*x2+size[0]/6
+							y2 = (size[1]/3)*y2+size[1]/6
+							pygame.draw.line(screen, scolor, (x1, y1), (x2, y2), ls)
+							pass
 						#draw line striking through, flash screen
+						pygame.display.update()
 						print("Player won!")
 						pygame.time.delay(1500)
 						return
@@ -189,8 +206,25 @@ def main():
 					pygame.draw.line(screen, fcolor, line3[0], line3[1], ls)
 					pygame.draw.line(screen, fcolor, line4[0], line4[1], ls)
 					pygame.display.update()
-					if grid.check_if_solved():
-						#pygame.draw.line(screen, fcolor, line1[0], line1[1], ls)
+					
+					result = grid.check_if_solved()
+					if result:
+						if result[0] is None: #horizontal
+							y = (size[1]/3)*result[1]+size[1]/6
+							pygame.draw.line(screen, scolor, (l3x, y), (l3w, y), ls)
+						elif result[1] is None: #vertical
+							x = (size[0]/3)*result[0]+size[0]/6
+							pygame.draw.line(screen, scolor, (x, l1y), (x, l1h), ls)
+						else: #diagonal
+							x1,y1 = result[0][0], result[0][1]
+							x2,y2 = result[1][0],result[1][1]
+							x1 = (size[0]/3)*x1+size[0]/6
+							y1 = (size[1]/3)*y1+size[1]/6
+							x2 = (size[0]/3)*x2+size[0]/6
+							y2 = (size[1]/3)*y2+size[1]/6
+							pygame.draw.line(screen, scolor, (x1, y1), (x2, y2), ls)
+							pass
+						pygame.display.update()
 						#draw line striking through, flash screen
 						print("CPU won!")
 						pygame.time.delay(1500)
