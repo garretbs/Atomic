@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+
+<html>
+	<body>
+		<h3>Database</h3>
+		<input type="button" name="submitEntry" value="Add random entry" onClick="submitEntry();">
+		<table id="people" border="1px">
+			<tr>
+				<th>ID</th>
+				<th>First name</th>
+				<th>Last name</th>
+				<th>Age</th>
+				<th>Full name</th>
+			</tr>
+		</table>
+		<p id="instruction">Insert a search form here, also an insertion form</p>
+		
+		<script language="JavaScript">
+			//Just have everything in a json database, then completely destroy
+			//and reconstruct the table each button press. maybe
+			var table = document.getElementById("people");
+			var db;
+			var latestId = 0;
+			var Person = {
+				id: 0,
+				firstName : "first",
+				lastName : "last",
+				age: 0,
+				fullName : function(){
+					return this.firstName+" "+this.lastName;
+				}
+			};
+			var firstNames = ["Bob", "Carla", "Xavier", "Wendy"];
+			var lastNames = ["Franklin", "Sanchez", "Jackson", "Porter"];
+			initDatabase();
+			function initDatabase(){
+				//load json file, fill in table by ID
+				db = new XMLHttpRequest();
+				db.open('GET', 'database.json', true);
+				if (db.readyState == 4 && db.status == "200") {
+					callback(db.responseText);
+				}
+				db.send();
+				document.getElementById("instruction").innerHTML = db.responseText;
+			}
+			function submitEntry(){
+				var newRow = table.insertRow();
+				var entry = Object.create(Person);
+				newRow.insertCell().innerHTML = entry.id = ++latestId;
+				newRow.insertCell().innerHTML = entry.firstName = sample(firstNames);
+				newRow.insertCell().innerHTML = entry.lastName = sample(lastNames);
+				newRow.insertCell().innerHTML = entry.age = Math.floor(Math.random() * 50)+18;
+				newRow.insertCell().innerHTML = entry.fullName();
+			}
+			function sample(array){
+				return array[Math.floor(Math.random()*array.length)];
+			}
+		</script>
+	</body>
+</html>
