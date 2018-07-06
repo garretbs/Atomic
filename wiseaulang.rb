@@ -126,6 +126,7 @@ class Tokenizer
 	attr_reader :follow
 	attr_reader :lr0_dfa
 	attr_reader :lr0_table
+	attr_reader :parse_tree
 
 	def parse_grammar(grammar_file)
 		file = File.open(grammar_file, "r")
@@ -248,7 +249,7 @@ class Tokenizer
 					prod.split(/\s+/).each do |p| #fix this?
 						l = @first[production.lhs].size
 						#@first[production.lhs] = @first[production.lhs] | @first[p]
-						@first[production.lhs].merge(@first[p])
+						@first[production.lhs].merge(@first[p]) unless @first[p].nil?
 						new_first ||= @first[production.lhs].size > l
 						break unless nullable?(p)
 					end
@@ -604,7 +605,7 @@ class Tokenizer
 		end
 	end
 	
-	def compile_chef_assembly
+	def compile_chef_assembly #x86
 		@variables = {}
 		@c_vars = {}
 		@last_var = 0
@@ -612,7 +613,7 @@ class Tokenizer
 		emit("global main")
 		emit("main:")
 		emit("\tmov r8,0")
-		compile(@parse_tree.root)
+		compile_chef(@parse_tree.root)
 		emit(";End")
 		emit("\tmov rax,0")
 		emit("\tret")
@@ -632,7 +633,65 @@ class Tokenizer
 		@last_var += 1
 	end
 	
-	def compile(node)
+	def interpret_wiseau #not truly possible irl
+		@variables = {}
+		@current_variable = nil #whatever tommy is thinking about
+		walk_wiseau(@parse_tree.root)
+		return true
+	end
+	
+	def walk_wiseau(node)
+		params = node.children.reverse
+		case node.label
+		when "S"
+			if node.children.size == 2 #anything theEnd
+				walk_wiseau(params[0])
+				walk_wiseau(params[1])
+			else #lambda
+				return true
+			end
+		when "anything" #declareVar anything | setVar anything | print anything | incrementVar anything | lambda
+			if node.children.size == 2 #actual stuff
+				walk_wiseau(params[0])
+				walk_wiseau(params[1])
+			else #lambda
+				return true
+			end
+		when "declareVar" #declareVar -> HI optionalComma NAME PERIOD | OHI optionalComma NAME PERIOD
+			if @variables[params[2].label]
+				raise "Variable " + params[2].label + " already declared!"
+			end
+			@variables[params[2].label] = rand(2003)
+			@current_variable = params[2].label
+		when "setVar" #NAME optionalComma NUMBER IS GREAT_BUT NUMBER IS A_CROWD PERIOD
+			get_variable(params[0].label)
+			@variables[params[0].label] = params[5].label.to_i
+			@current_variable = params[0].label
+		when "incrementVar" #HAH PERIOD
+			get_variable(@current_variable)
+			@variables[@current_variable] += params[0].label.count("a")
+		when "decrementVar" #CHEEPS PERIOD
+			get_variable(@current_variable)
+			@variables[@current_variable] += params[0].label.count("p")
+		when "print" #printVar | printString
+			walk_wiseau(params[0])
+		when "printVar" #YOU_KNOW_WHAT_THEY_SAY COMMA NAME IS_BLIND PERIOD
+			if node.children.size == 1
+				@variables[@current_variable]
+			else
+				puts @variables[params[2].label]
+				@current_variable = params[2].label
+			end
+		when "printString" #YOU_KNOW_WHAT_THEY_SAY COMMA QUOTE PERIOD
+			puts params[2].label.tr("\"","") #need a better way of doing this
+		when "theEnd"
+			return true
+		else
+			puts "Unknown node type " + node.label
+		end
+	end
+	
+	def compile_chef(node)
 		params = node.children.reverse
 		case node.label
 		when "S" #recipeList
@@ -868,12 +927,6 @@ class Tokenizer
 	
 end #tokenizer class
 
-=begin
-Output assembly language for Chef.
-
-You only have to implement enough of the assembly generator to handle the given grammar + example program. Note that this grammar is SLR(1) (unlike the full Chef grammar, which will probably require a GLR or Earley parser to handle it).
-=end
-
 grammar = ARGV[0] rescue nil
 input_file = ARGV[1] rescue nil
 
@@ -890,5 +943,6 @@ tokens = tokenizer.tokenize_file(input_file)
 if tokens
 	tokenizer.build_lr0_table
 	tokenizer.lr_parse(nil, tokens)
-	tokenizer.compile_chef_assembly
+	#tokenizer.parse_tree.export_dot
+	tokenizer.interpret_wiseau
 end
